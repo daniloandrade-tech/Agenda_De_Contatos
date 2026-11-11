@@ -1,27 +1,33 @@
 <?php
 include "conexao.php";
 
-$id= $_POST['id'];
+if($_SERVER['REQUEST_METHOD'] !== 'POST'){
+    header("Location: index.php");
+    exit();
+}
 
-$nome = $_POST['nome'];
-$email = $_POST['email'];
-$telefone = $_POST['telefone'];
-$endereco = $_POST['endereco'];
-$cidade = $_POST['cidade'];
-$estado = $_POST['estado'];
+$id = (int)($_POST['id'] ?? 0);
+$nome = trim($_POST['nome'] ?? '');
+$telefone = somente_digitos($_POST['telefone'] ?? '');
 
-$sql = "UPDATE contatos SET
+if($id <= 0 || $nome === '' || $telefone === ''){
+    voltar_ao_index('erro_atualizar');
+}
 
-nome='$nome',
-email='$email',
-telefone='$telefone',
-endereco='$endereco',
-cidade='$cidade',
-estado='$estado'
+try {
+    $stmt = mysqli_prepare($conexao, "UPDATE contatos SET nome = ?, telefone = ? WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "ssi", $nome, $telefone, $id);
+    mysqli_stmt_execute($stmt);
+} catch (mysqli_sql_exception $e) {
+    error_log("Erro ao atualizar: " . $e->getMessage());
+    voltar_ao_index('erro_atualizar');
+}
 
-WHERE id='$id'"; 
+// affected_rows = 0 também ocorre quando nada mudou, então confirma se o ID existe
+$check = mysqli_prepare($conexao, "SELECT id FROM contatos WHERE id = ?");
+mysqli_stmt_bind_param($check, "i", $id);
+mysqli_stmt_execute($check);
+mysqli_stmt_store_result($check);
 
-mysqli_query($conexao,$sql);
-
-header("Location: index.php");
+voltar_ao_index(mysqli_stmt_num_rows($check) > 0 ? 'atualizado' : 'nao_encontrado');
 ?>
