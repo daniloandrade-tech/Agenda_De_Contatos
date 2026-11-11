@@ -1,9 +1,15 @@
 <?php include "conexao.php"; 
 
-$id = $_GET['id'];
-$sql = "SELECT * FROM contatos WHERE id='$id'";
-$resultado = mysqli_query($conexao, $sql);
-$dados = mysqli_fetch_assoc($resultado);
+$id = (int)($_GET['id'] ?? 0);
+$stmt = mysqli_prepare($conexao, "SELECT id, nome, telefone FROM contatos WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$dados = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+
+if(!$dados){
+	header("Location: index.php");
+	exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-br">
@@ -16,47 +22,51 @@ $dados = mysqli_fetch_assoc($resultado);
 	<div class="container">
 		<img src="img/agenda.png" width="140" height="140">
 		<h1>Editar Contatos</h1>
+		<br><br><br><br>
 		<form action="atualizar.php" method="post">	
-			<input type="id" name="id" value="<?php echo $dados['id']; ?>">
-			<input type="text" name="nome"value="<?php echo $dados['nome']; ?>" required>		
-			<input type="email" name="email" value="<?php echo $dados['email']; ?>" required>
-			<input type="text" name="telefone" value="<?php echo $dados['telefone']; ?>" required>
-			<input type="text" name="endereco" value="<?php echo $dados['endereco']; ?>" required>
-			<input type="text" name="cidade" value="<?php echo $dados['cidade']; ?>" required>
-			<select name="estado" class="select-estado" required>
-				<option value="">Selecione o Estado</option>
-				<option value="AC" <?php if($dados['estado']=="AC") echo "select"; ?>>AC</option>
-				<option value="AL" <?php if($dados['estado']=="AL") echo "select"; ?>>AL</option>
-				<option value="AP" <?php if($dados['estado']=="AP") echo "select"; ?>>AP</option>
-				<option value="AM" <?php if($dados['estado']=="AM") echo "select"; ?>>AM</option>
-				<option value="BA" <?php if($dados['estado']=="BA") echo "select"; ?>>BA</option>
-				<option value="CE" <?php if($dados['estado']=="CE") echo "select"; ?>>CE</option>
-				<option value="DF" <?php if($dados['estado']=="DF") echo "select"; ?>>DF</option>
-				<option value="ES" <?php if($dados['estado']=="ES") echo "select"; ?>>ES</option>
-				<option value="GO" <?php if($dados['estado']=="GO") echo "select"; ?>>GO</option>
-				<option value="MA" <?php if($dados['estado']=="MA") echo "select"; ?>>MA</option>
-				<option value="MT" <?php if($dados['estado']=="MT") echo "select"; ?>>MT</option>
-				<option value="MS" <?php if($dados['estado']=="MS") echo "select"; ?>>MS</option>
-				<option value="MG" <?php if($dados['estado']=="MG") echo "select"; ?>>MG</option>
-				<option value="PA" <?php if($dados['estado']=="PA") echo "select"; ?>>PA</option>
-				<option value="PB" <?php if($dados['estado']=="PB") echo "select"; ?>>PB</option>
-				<option value="PR" <?php if($dados['estado']=="PR") echo "select"; ?>>PR</option>
-				<option value="PE" <?php if($dados['estado']=="PE") echo "select"; ?>>PE</option>
-				<option value="PI" <?php if($dados['estado']=="PI") echo "select"; ?>>PI</option>
-				<option value="RJ" <?php if($dados['estado']=="RJ") echo "select"; ?>>RJ</option>
-				<option value="RN" <?php if($dados['estado']=="RN") echo "select"; ?>>RN</option>
-				<option value="RS" <?php if($dados['estado']=="RS") echo "select"; ?>>RS</option>
-				<option value="RO" <?php if($dados['estado']=="RO") echo "select"; ?>>RO</option>
-				<option value="RR" <?php if($dados['estado']=="RR") echo "select"; ?>>RR</option>
-				<option value="SC" <?php if($dados['estado']=="SC") echo "select"; ?>>SC</option>
-				<option value="SP" <?php if($dados['estado']=="SP") echo "select"; ?>>SP</option>
-				<option value="SE" <?php if($dados['estado']=="SE") echo "select"; ?>>SE</option>
-				<option value="TO" <?php if($dados['estado']=="TO") echo "select"; ?>>TO</option>
-			</select>
+			<label for="id">ID do Contato: </label>
+			<!-- Campo desabilitado NÃO é enviado pelo formulário, por isso o ID vai em um campo hidden -->
+			<input type="text" id="id" value="<?php echo h($dados['id']); ?>" disabled>
+			<input type="hidden" name="id" value="<?php echo h($dados['id']); ?>">
+			<label for="nome">Nome: </label>
+			<input type="text" id="nome" name="nome" value="<?php echo h($dados['nome']); ?>" required>
+			<label for="telefone">Telefone:</label>		
+			<input type="text" id="telefone" name="telefone" value="<?php echo h(formatar_telefone($dados['telefone'])); ?>" placeholder="(00) 00000-0000" required>
 			<BR>
-			<button type="submit">Salvar alteração</button>
+			
+			<div class="grupo-botoes">
+				<!-- Botão Salvar (ação principal) -->
+				<button type="submit" class="btn btn-salvar">
+					Salvar
+				</button>
+
+				<!-- Botão Limpar: esvazia Nome e Telefone (o ID não muda) -->
+				<button type="button" class="btn btn-limpar" onclick="limparCampos()">
+					Limpar
+				</button>
+
+				<!-- Botão Voltar (ação de navegação) -->
+				<a href="index.php" class="btn btn-voltar">
+					Voltar
+				</a>
+			</div>
 		</form>
 		
 	</div>
+
+	<script src="https://unpkg.com/imask@7.6.1/dist/imask.min.js"></script>
+	<script>
+		IMask(document.getElementById('telefone'), {
+			mask: [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-0000' }]
+		});
+
+		function limparCampos(){
+			document.getElementById('nome').value = '';
+			var tel = document.getElementById('telefone');
+			tel.value = '';
+			tel.dispatchEvent(new Event('input')); // atualiza a máscara
+			document.getElementById('nome').focus();
+		}
+	</script>
 </body>
 </html>
