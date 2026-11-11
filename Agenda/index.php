@@ -5,88 +5,74 @@
 	<meta charset="UTF-8">
 	<title>Agenda</title>
 	<link rel="stylesheet" href="style.css">
+	
 </head>
 <body>
 	<div class="container">
 		<img src="img/agenda.png" width="140" height="140">
 		<h1>Agenda de Contatos</h1>
-		<form action="salvar_contato.php" method="post">	
-			<input type="text" name="nome" placeholder="Nome" required>		
-			<input type="email" name="email" placeholder="E-mail" required>
-			<input type="text" name="telefone" placeholder="Telefone" required>
-			<input type="text" name="endereco" placeholder="Endereço" required>
-			<input type="text" name="cidade" placeholder="Cidade" required>
-			<select name="estado" class="select-estado" required>
-				<option value="">Selecione o Estado</option>
-				<option value="AC">AC</option>
-				<option value="AL">AL</option>
-				<option value="AP">AP</option>
-				<option value="AM">AM</option>
-				<option value="BA">BA</option>
-				<option value="CE">CE</option>
-				<option value="DF">DF</option>
-				<option value="ES">ES</option>
-				<option value="GO">GO</option>
-				<option value="MA">MA</option>
-				<option value="MT">MT</option>
-				<option value="MS">MS</option>
-				<option value="MG">MG</option>
-				<option value="PA">PA</option>
-				<option value="PB">PB</option>
-				<option value="PR">PR</option>
-				<option value="PE">PE</option>
-				<option value="PI">PI</option>
-				<option value="RJ">RJ</option>
-				<option value="RN">RN</option>
-				<option value="RS">RS</option>
-				<option value="RO">RO</option>
-				<option value="RR">RR</option>
-				<option value="SC">SC</option>
-				<option value="SP">SP</option>
-				<option value="SE">SE</option>
-				<option value="TO">TO</option>
-			</select>
+		<br><br><br><br><br>
+		<?php
+			$msgs = mensagens_status();
+			$st = $_GET['status'] ?? '';
+			if(isset($msgs[$st])){
+				echo '<div class="aviso aviso-' . $msgs[$st][0] . '">' . h($msgs[$st][1]) . '</div>';
+			}
+		?>
+		<form action="salvar_contato.php" method="post">
+			<label for="nome">Nome:</label>	
+			<input type="text" id="nome" name="nome" placeholder="Nome ..." required>		
+			<label for="telefone">Telefone:</label>	
+			<input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
 			<BR>
-			<button type="submit">Cadastra</button>
+			<button type="submit" class="btn btn-salvar">Cadastrar</button>
 		</form>
 		<br><br>
 		
-		<a href="pesquisar.php" class="btn-pesquisar">Pesquisar Contatos</a>
+		<a href="pesquisar.php" class="btn btn-pesquisar">Pesquisar Contatos</a>
 		
 		<br><br>
 		<table>
 		<tr>
+			<th class="col-id">ID</th>
 			<th>Nome</th>
-			<th>E-mail</th>
 			<th>Telefone</th>
-			<th>Cidade</th>
-			<th>Estado</th>
-			<th>Ações</th>
+			<th class="col-acoes">Ações</th>
 		</tr>
 		<?php
-			$sql = "SELECT * FROM contatos ORDER BY nome";
+			$sql = "SELECT * FROM contatos ORDER BY id";
 			$resultado = mysqli_query($conexao, $sql);
 			while($dados = mysqli_fetch_assoc($resultado)){
 		?>
 		<tr>
-			<td><?php echo $dados['nome']; ?></td>
-			<td><?php echo $dados['email']; ?></td>
-			<td><?php echo $dados['telefone']; ?></td>
-			<td><?php echo $dados['cidade']; ?></td>
-			<td><?php echo $dados['estado']; ?></td>
-			<td>
-				<a href="form_editar.php?id=<?php echo $dados['id'];?>">
-					<img src="img/edit.png" width="30" height="30"> 
-				</a>
-				<a onclick="return confirm ('Deseja excluir?')"
-				href="form_excluir.php?id=<?php echo $dados['id']; ?>">
-					<img src="img/excluir.png" width="30" height="30">
-				</a>
+			<td class="col-id"><?php echo h($dados['id']); ?></td>
+			<td><?php echo h($dados['nome']); ?></td>
+			<td><?php echo h(formatar_telefone($dados['telefone'])); ?></td>
+			<td class="col-acoes">
+				<div class="acoes">
+					<a href="form_editar.php?id=<?php echo h($dados['id']); ?>" title="Editar">
+						<img src="img/edit.png" width="24" height="24" alt="Editar">
+					</a>
+					<form action="form_excluir.php" method="post" class="form-excluir"
+					onsubmit="return confirm('Deseja excluir?')">
+						<input type="hidden" name="id" value="<?php echo h($dados['id']); ?>">
+						<button type="submit" class="btn-icone" title="Excluir">
+							<img src="img/excluir.png" width="24" height="24" alt="Excluir">
+						</button>
+					</form>
+				</div>
 			</td>
 			
 		</tr>
 		<?php }?>
 		</table>
 	</div>
+
+	<script src="https://unpkg.com/imask@7.6.1/dist/imask.min.js"></script>
+	<script>
+		IMask(document.getElementById('telefone'), {
+			mask: [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-0000' }]
+		});
+	</script>
 </body>
 </html>
