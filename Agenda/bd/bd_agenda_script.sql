@@ -1,27 +1,15 @@
--- MySQL Workbench Forward Engineering
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+create database Agenda;
+use Agenda;
 
--- Schema agenda
-CREATE SCHEMA IF NOT EXISTS `agenda` DEFAULT CHARACTER SET utf8mb4 ;
-USE `agenda` ;
+create table contatos 
+(id int(7) not null primary key auto_increment,
+nome varchar(60) not null,
+telefone varchar(11) not null);
 
--- -----------------------------------------------------
--- Table `agenda`.`contatos`
--- -----------------------------------------------------
-CREATE TABLE IF NOT EXISTS `agenda`.`contatos` (
-  `id` INT(7) NOT NULL AUTO_INCREMENT,
-  `nome` VARCHAR(60) NOT NULL,
-  `email` VARCHAR(100) NOT NULL,
-  `telefone` VARCHAR(11) NOT NULL,
-  `cidade` VARCHAR(60) NOT NULL,
-  `estado` CHAR(2) NOT NULL,
-  PRIMARY KEY (`id`))
-ENGINE = InnoDB
-DEFAULT CHARACTER SET = utf8mb4;
+create table usuario
+(id_usuario int(7) not null primary key auto_increment,
+usuario varchar(60) not null);
 
-
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+alter table contatos 
+add constraint fk_id_usuario foreign key (id_usuario) 
+references usuario (id_usuario);
